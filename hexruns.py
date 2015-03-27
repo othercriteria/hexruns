@@ -22,7 +22,7 @@ if args.locality:
     
     print('Limiting to "{0}"'.format(locality))
 
-    api_key = open('google_public_api_key', 'r').readlines()[0][:-1]
+    api_key = open('google_public_api_key', 'r').read()
     print('Google public API key:', api_key)
     
     import googlemaps
@@ -95,9 +95,6 @@ contents = opened_url.read()
 buffer = io.BytesIO(contents)
 image = Image.open(buffer)
 
-plt.figure()
-plt.imshow(image)
-
 # Transform the tracks onto the same coordinates as the map
 lat -= center_lat 
 lon -= center_lon
@@ -107,5 +104,11 @@ lon *= scaling
 lat += (dim / 2)
 lon += (dim / 2)
 
-plt.hexbin(lon, lat, dur, gridsize = 50, alpha = 0.4)
+plt.figure()
+plt.imshow(image)
+plt.hexbin(lon, lat, dur,
+           reduce_C_function = np.sum,
+           gridsize = 20, alpha = 0.6, cmap=plt.cm.Blues)
+cb = plt.colorbar()
+cb.set_label('seconds')
 plt.show()
