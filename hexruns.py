@@ -109,6 +109,16 @@ plt.imshow(image)
 plt.hexbin(lon, lat, dur,
            reduce_C_function = np.sum,
            gridsize = 20, alpha = 0.6, cmap=plt.cm.Blues)
+plt.xticks(np.linspace(0, dim, 5),
+           [('%.2f' % lon)
+            for lon in np.linspace((-dim / 2) / scaling + center_lon,
+                                   ( dim / 2) / scaling + center_lon,
+                                   5)])
+plt.yticks(np.linspace(0, dim, 5),
+           [('%.2f' % lat)
+            for lat in np.linspace(( dim / 2) / scaling + center_lat,
+                                   (-dim / 2) / scaling + center_lat,
+                                   5)])
 cb = plt.colorbar()
 cb.set_label('seconds')
 plt.show()
