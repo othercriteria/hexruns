@@ -115,11 +115,13 @@ lon *= scaling
 lat += (dim / 2)
 lon += (dim / 2)
 
+# Return the hexbin object for later use
 def do_plot(gridsize):
     plt.imshow(image)
-    plt.hexbin(lon, lat, dur,
-               reduce_C_function = np.sum,
-               gridsize = gridsize, alpha = args.alpha, cmap=plt.cm.winter_r)
+    h = plt.hexbin(lon, lat, dur,
+                   reduce_C_function = np.sum,
+                   gridsize = gridsize, alpha = args.alpha,
+                   cmap=plt.cm.winter_r)
     plt.xticks(np.linspace(0, dim, 5),
                [('%.2f' % lon)
                 for lon in np.linspace((-dim / 2) / scaling + center_lon,
@@ -130,6 +132,8 @@ def do_plot(gridsize):
                 for lat in np.linspace(( dim / 2) / scaling + center_lat,
                                        (-dim / 2) / scaling + center_lat,
                                        5)])
+
+    return h
 
 plt.figure()
 do_plot(gridsize = args.grid)
@@ -148,15 +152,19 @@ if args.movie:
     metadata = { 'title':   title,
                  'artist':  'https://github.com/othercriteria/hexruns',
                  'comment': 'grid size: 2 - {0}'.format(args.grid) }
-    writer = FFMpegWriter(fps = 3, metadata = metadata)
+    writer = FFMpegWriter(fps = 3, metadata = metadata, bitrate = 300)
 
     fig = plt.figure()
     with writer.saving(fig, args.output + '.mp4', 100):
-        for i in range(1, args.grid):
+        for i in range(args.grid, 1, -1):
             fig.clf()
-            do_plot(gridsize = i + 1)
-            cb = plt.colorbar()
+            h = do_plot(gridsize = i + 1)
+
+            cb = plt.colorbar(h)
             cb.set_label('seconds')
+            min_time = h.get_array().min()
+            max_time = h.get_array().max()
+            cb.set_ticks(np.linspace(min_time, max_time, 3))
 
             writer.grab_frame()
 
