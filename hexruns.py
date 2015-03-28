@@ -13,6 +13,10 @@ import urllib.request
 parser = argparse.ArgumentParser(description = 'Visualize GPX running data.')
 parser.add_argument('locality', type = str, nargs = '?',
                     help = 'Limit visualization to selected locality')
+parser.add_argument('-grid', metavar = 'g', type = int, default = 20,
+                    help = 'Grid size, in number of hexagons')
+parser.add_argument('-alpha', metavar = 'a', type = float, default = 0.5,
+                    help = 'Opacity of historgram (default: 0.5)')
 parser.add_argument('-dim', metavar = 'd', type = int, default = 600,
                     help = 'Dimensions of image to output (default: 600)')
 args = parser.parse_args()
@@ -108,7 +112,7 @@ plt.figure()
 plt.imshow(image)
 plt.hexbin(lon, lat, dur,
            reduce_C_function = np.sum,
-           gridsize = 20, alpha = 0.6, cmap=plt.cm.Blues)
+           gridsize = args.grid, alpha = args.alpha, cmap=plt.cm.winter_r)
 plt.xticks(np.linspace(0, dim, 5),
            [('%.2f' % lon)
             for lon in np.linspace((-dim / 2) / scaling + center_lon,
