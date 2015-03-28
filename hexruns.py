@@ -92,8 +92,8 @@ url = 'http://maps.googleapis.com/maps/api/staticmap'
 center_lat = np.mean(lat)
 center_lon = np.mean(lon)
 dim = args.dim
-range = max(lat.max() - lat.min(), lon.max() - lon.min())
-zoom = int(np.log(360 / range) / np.log(2) + 1)
+max_range = max(lat.max() - lat.min(), lon.max() - lon.min())
+zoom = int(np.log(360 / max_range) / np.log(2) + 1)
 request = '{0}?center={1},{2}&size={3}x{3}&zoom={4}'.format(url,
                                                             center_lat,
                                                             center_lon,
@@ -116,7 +116,6 @@ lat += (dim / 2)
 lon += (dim / 2)
 
 def do_plot(gridsize):
-    plt.figure()
     plt.imshow(image)
     plt.hexbin(lon, lat, dur,
                reduce_C_function = np.sum,
@@ -131,11 +130,33 @@ def do_plot(gridsize):
                 for lat in np.linspace(( dim / 2) / scaling + center_lat,
                                        (-dim / 2) / scaling + center_lat,
                                        5)])
-    cb = plt.colorbar()
-    cb.set_label('seconds')
+
+plt.figure()
+do_plot(gridsize = args.grid)
+cb = plt.colorbar()
+cb.set_label('seconds')
+plt.savefig(args.output + '.png')
 
 if args.movie:
-    pass
-    
-do_plot(gridsize = args.grid)
-plt.savefig(args.output + '.png')
+    import matplotlib.animation as manimation
+
+    FFMpegWriter = manimation.writers['ffmpeg']
+    if args.locality:
+        title = 'hexruns output: "{0}"'.format(args.locality)
+    else:
+        title = 'hexruns output'
+    metadata = { 'title':   title,
+                 'artist':  'https://github.com/othercriteria/hexruns',
+                 'comment': 'grid size: 2 - {0}'.format(args.grid) }
+    writer = FFMpegWriter(fps = 3, metadata = metadata)
+
+    fig = plt.figure()
+    with writer.saving(fig, args.output + '.mp4', 100):
+        for i in range(1, args.grid):
+            fig.clf()
+            do_plot(gridsize = i + 1)
+            cb = plt.colorbar()
+            cb.set_label('seconds')
+
+            writer.grab_frame()
+
