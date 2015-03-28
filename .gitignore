@@ -1,6 +1,9 @@
 # Ignore run traces
 *.gpx
 
+# Ignore default output files
+hexruns_out.*
+
 # Ignore API key file
 google_public_api_key
 

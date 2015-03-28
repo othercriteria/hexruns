@@ -3,22 +3,29 @@
 import argparse
 import os
 import gpxpy
-import matplotlib.pyplot as plt
 import numpy as np
 import io
 from PIL import Image
 import urllib.request
 
+import matplotlib
+matplotlib.use("Agg")
+import matplotlib.pyplot as plt
+
 # Command line option handling
 parser = argparse.ArgumentParser(description = 'Visualize GPX running data.')
 parser.add_argument('locality', type = str, nargs = '?',
                     help = 'Limit visualization to selected locality')
+parser.add_argument('-output', type = str, default = 'hexruns_out',
+                    help = 'Output filename stem (default: hexruns_out)')
 parser.add_argument('-grid', metavar = 'g', type = int, default = 20,
                     help = 'Grid size, in number of hexagons')
 parser.add_argument('-alpha', metavar = 'a', type = float, default = 0.5,
                     help = 'Opacity of historgram (default: 0.5)')
 parser.add_argument('-dim', metavar = 'd', type = int, default = 600,
                     help = 'Dimensions of image to output (default: 600)')
+parser.add_argument('-movie', action = 'store_true',
+                    help = 'Generate a movie for the range of grid size')
 args = parser.parse_args()
 
 if args.locality:
@@ -108,21 +115,27 @@ lon *= scaling
 lat += (dim / 2)
 lon += (dim / 2)
 
-plt.figure()
-plt.imshow(image)
-plt.hexbin(lon, lat, dur,
-           reduce_C_function = np.sum,
-           gridsize = args.grid, alpha = args.alpha, cmap=plt.cm.winter_r)
-plt.xticks(np.linspace(0, dim, 5),
-           [('%.2f' % lon)
-            for lon in np.linspace((-dim / 2) / scaling + center_lon,
-                                   ( dim / 2) / scaling + center_lon,
-                                   5)])
-plt.yticks(np.linspace(0, dim, 5),
-           [('%.2f' % lat)
-            for lat in np.linspace(( dim / 2) / scaling + center_lat,
-                                   (-dim / 2) / scaling + center_lat,
-                                   5)])
-cb = plt.colorbar()
-cb.set_label('seconds')
-plt.show()
+def do_plot(gridsize):
+    plt.figure()
+    plt.imshow(image)
+    plt.hexbin(lon, lat, dur,
+               reduce_C_function = np.sum,
+               gridsize = gridsize, alpha = args.alpha, cmap=plt.cm.winter_r)
+    plt.xticks(np.linspace(0, dim, 5),
+               [('%.2f' % lon)
+                for lon in np.linspace((-dim / 2) / scaling + center_lon,
+                                       ( dim / 2) / scaling + center_lon,
+                                       5)])
+    plt.yticks(np.linspace(0, dim, 5),
+               [('%.2f' % lat)
+                for lat in np.linspace(( dim / 2) / scaling + center_lat,
+                                       (-dim / 2) / scaling + center_lat,
+                                       5)])
+    cb = plt.colorbar()
+    cb.set_label('seconds')
+
+if args.movie:
+    pass
+    
+do_plot(gridsize = args.grid)
+plt.savefig(args.output + '.png')
