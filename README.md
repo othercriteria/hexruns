@@ -15,6 +15,8 @@ I found this [guide](http://matplotlib.org/users/colormaps.html) useful in choos
 5. Place the API key into a file: `echo "YOUR-KEY" > google_public_api_key`.
 6. Run the script, e.g., `./hexruns.py "Providence, RI"`.
 
+For more control over the output, take a look at `./hexruns.py --help`.
+
 ## Requirements
 
 * Python 3.x
@@ -22,3 +24,4 @@ I found this [guide](http://matplotlib.org/users/colormaps.html) useful in choos
 * [Pillow](https://python-pillow.github.io/), or equivalent, to provide [PIL](http://www.pythonware.com/products/pil/)
 * [gpxpy](https://github.com/tkrajina/gpxpy)
 * [Python client for Google Maps Services](https://github.com/googlemaps/google-maps-services-python)
+* For movie output: [FFmpeg](https://www.ffmpeg.org/)
