@@ -22,8 +22,6 @@ parser.add_argument('-grid', metavar = 'g', type = int, default = 20,
                     help = 'Grid size, in number of hexagons')
 parser.add_argument('-alpha', metavar = 'a', type = float, default = 0.5,
                     help = 'Opacity of historgram (default: 0.5)')
-parser.add_argument('-dim', metavar = 'd', type = int, default = 600,
-                    help = 'Dimensions of image to output (default: 600)')
 parser.add_argument('-movie', action = 'store_true',
                     help = 'Generate a movie for the range of grid size')
 args = parser.parse_args()
@@ -91,9 +89,9 @@ if args.locality:
 url = 'http://maps.googleapis.com/maps/api/staticmap'
 center_lat = np.mean(lat)
 center_lon = np.mean(lon)
-dim = args.dim
+dim = 512
 max_range = max(lat.max() - lat.min(), lon.max() - lon.min())
-zoom = int(np.log(360 / max_range) / np.log(2))
+zoom = int(np.log(360 / max_range) / np.log(2) + 1)
 request = '{0}?center={1},{2}&size={3}x{3}&zoom={4}'.format(url,
                                                             center_lat,
                                                             center_lon,
@@ -119,10 +117,12 @@ lon += (dim / 2)
 # Return the hexbin object for later use
 def do_plot(gridsize):
     plt.imshow(image)
+
     h = plt.hexbin(lon, lat, dur,
                    reduce_C_function = np.sum,
-                   gridsize = gridsize, alpha = args.alpha,
-                   cmap=plt.cm.winter_r)
+                   extent = (0, dim, 0, dim),
+                   gridsize = gridsize,
+                   alpha = args.alpha, cmap=plt.cm.winter_r)
     plt.xticks(np.linspace(0, dim, 5),
                [('%.2f' % lon)
                 for lon in np.linspace((-dim / 2) / lon_scaling + center_lon,
@@ -133,7 +133,6 @@ def do_plot(gridsize):
                 for lat in np.linspace(( dim / 2) / lat_scaling + center_lat,
                                        (-dim / 2) / lat_scaling + center_lat,
                                        5)])
-
     return h
 
 plt.figure()
@@ -168,4 +167,3 @@ if args.movie:
             cb.set_ticks(np.linspace(min_time, max_time, 3))
 
             writer.grab_frame()
-
