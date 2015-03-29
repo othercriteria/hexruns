@@ -152,7 +152,7 @@ if args.movie:
     metadata = { 'title':   title,
                  'artist':  'https://github.com/othercriteria/hexruns',
                  'comment': 'grid size: 2 - {0}'.format(args.grid) }
-    writer = FFMpegWriter(fps = 3, metadata = metadata, bitrate = 300)
+    writer = FFMpegWriter(fps = 3, metadata = metadata, bitrate = 1000)
 
     fig = plt.figure()
     with writer.saving(fig, args.output + '.mp4', 100):
@@ -164,6 +164,8 @@ if args.movie:
             cb.set_label('seconds')
             min_time = h.get_array().min()
             max_time = h.get_array().max()
-            cb.set_ticks(np.linspace(min_time, max_time, 3))
+            tick_vals = np.linspace(min_time, max_time, 3)
+            cb.set_ticks(tick_vals)
+            cb.set_ticklabels([str(int(tick_val)) for tick_val in tick_vals])
 
             writer.grab_frame()
