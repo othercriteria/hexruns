@@ -93,7 +93,7 @@ center_lat = np.mean(lat)
 center_lon = np.mean(lon)
 dim = args.dim
 max_range = max(lat.max() - lat.min(), lon.max() - lon.min())
-zoom = int(np.log(360 / max_range) / np.log(2) + 1)
+zoom = int(np.log(360 / max_range) / np.log(2))
 request = '{0}?center={1},{2}&size={3}x{3}&zoom={4}'.format(url,
                                                             center_lat,
                                                             center_lon,
@@ -107,11 +107,12 @@ buffer = io.BytesIO(contents)
 image = Image.open(buffer)
 
 # Transform the tracks onto the same coordinates as the map
-lat -= center_lat 
+lat -= center_lat
 lon -= center_lon
-scaling = (dim / 360) * (2 ** (zoom - 1))
-lat *= -scaling
-lon *= scaling
+lon_scaling = (dim / 360) * (2 ** (zoom - 1))
+lat_scaling = lon_scaling / np.cos(center_lat * np.pi / 180)
+lat *= -lat_scaling
+lon *= lon_scaling
 lat += (dim / 2)
 lon += (dim / 2)
 
@@ -124,13 +125,13 @@ def do_plot(gridsize):
                    cmap=plt.cm.winter_r)
     plt.xticks(np.linspace(0, dim, 5),
                [('%.2f' % lon)
-                for lon in np.linspace((-dim / 2) / scaling + center_lon,
-                                       ( dim / 2) / scaling + center_lon,
+                for lon in np.linspace((-dim / 2) / lon_scaling + center_lon,
+                                       ( dim / 2) / lon_scaling + center_lon,
                                        5)])
     plt.yticks(np.linspace(0, dim, 5),
                [('%.2f' % lat)
-                for lat in np.linspace(( dim / 2) / scaling + center_lat,
-                                       (-dim / 2) / scaling + center_lat,
+                for lat in np.linspace(( dim / 2) / lat_scaling + center_lat,
+                                       (-dim / 2) / lat_scaling + center_lat,
                                        5)])
 
     return h
