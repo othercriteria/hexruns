@@ -2,7 +2,7 @@
 *.gpx
 
 # Ignore default output files
-hexruns_out.*
+hexruns_out*.*
 
 # Ignore API key file
 google_public_api_key
