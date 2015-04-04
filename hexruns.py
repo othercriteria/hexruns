@@ -84,13 +84,16 @@ if args.locality:
     lat = lat[in_bounds]
     lon = lon[in_bounds]
     dur = dur[in_bounds]
+
+# Locate center of GPS points, and calculate local scale factor
+center_lat = np.mean(lat)
+center_lon = np.mean(lon)
+scale_factor = 1 / np.cos(center_lat * np.pi / 180)
     
 # Construct Google Maps static image request
 url = 'http://maps.googleapis.com/maps/api/staticmap'
-center_lat = np.mean(lat)
-center_lon = np.mean(lon)
 dim = 512
-max_range = max(lat.max() - lat.min(), lon.max() - lon.min())
+max_range = max(scale_factor * (lat.max() - lat.min()), lon.max() - lon.min())
 zoom = int(np.log(360 / max_range) / np.log(2) + 1)
 request = '{0}?center={1},{2}&size={3}x{3}&zoom={4}'.format(url,
                                                             center_lat,
@@ -108,7 +111,7 @@ image = Image.open(buffer)
 lat -= center_lat
 lon -= center_lon
 lon_scaling = (dim / 360) * (2 ** (zoom - 1))
-lat_scaling = lon_scaling / np.cos(center_lat * np.pi / 180)
+lat_scaling = lon_scaling * scale_factor
 lat *= -lat_scaling
 lon *= lon_scaling
 lat += (dim / 2)
