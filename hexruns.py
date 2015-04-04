@@ -48,8 +48,8 @@ if args.locality:
     print('Latitude:  {0} -- {1}'.format(lat_l, lat_u))
     print('Longitude: {0} -- {1}'.format(lon_l, lon_u))
     
-# Accumulate lists of latitude, longitude, and duration
-lat, lon, dur = [], [], []
+# Accumulate lists of latitude, longitude, duration, and speed
+lat, lon, dur, spd = [], [], [], []
 
 all_files = os.listdir('.')
 for file in all_files:
@@ -69,21 +69,41 @@ for file in all_files:
             for point in rest:
                 new = point
 
+                # TODO: minimum time-delta should be user-specified
+                t = (new.time - last.time).total_seconds()
+                if t < 12:
+                    continue
+
+                # TODO: use standard cartographical terminology
+                c = 24901 * np.cos(new.latitude * np.pi / 180) / 360
+                k = 1 / np.cos(new.latitude * np.pi / 180)
+                d = np.sqrt((k*c*(new.latitude  - last.latitude )) ** 2 +
+                            (  c*(new.longitude - last.longitude)) ** 2)
+                s = 3600 * d / t
+
+                # TODO: unrealistic speed should be user-specified
+                if s > 15:
+                    print('Suspicious speed:', s, last, new)
+                    continue
+
                 lat.append(new.latitude)
                 lon.append(new.longitude)
-                dur.append((new.time - last.time).total_seconds())
+                dur.append(t)
+                spd.append(s)
 
                 last = new
 
 lat = np.array(lat)
 lon = np.array(lon)
 dur = np.array(dur)
+spd = np.array(spd)
 if args.locality:
     in_bounds = (lat_l < lat) * (lat < lat_u) * (lon_l < lon) * (lon < lon_u)
 
     lat = lat[in_bounds]
     lon = lon[in_bounds]
     dur = dur[in_bounds]
+    spd = spd[in_bounds]
 
 # Locate center of GPS points, and calculate local scale factor
 center_lat = np.mean(lat)
@@ -118,14 +138,24 @@ lat += (dim / 2)
 lon += (dim / 2)
 
 # Return the hexbin object for later use
-def do_plot(gridsize):
+def do_plot(gridsize, disp):
     plt.imshow(image)
 
-    h = plt.hexbin(lon, lat, dur,
-                   reduce_C_function = np.sum,
-                   extent = (0, dim, 0, dim),
-                   gridsize = gridsize,
-                   alpha = args.alpha, cmap=plt.cm.winter_r)
+    if disp == 'duration':
+        h = plt.hexbin(lon, lat, dur,
+                       reduce_C_function = np.sum,
+                       extent = (0, dim, 0, dim),
+                       gridsize = gridsize,
+                       alpha = args.alpha, cmap=plt.cm.Blues)
+        plt.title('Total time in region')
+    elif disp == 'speed':
+        h = plt.hexbin(lon, lat, spd,
+                       reduce_C_function = np.max,
+                       extent = (0, dim, 0, dim),
+                       gridsize = gridsize,
+                       alpha = args.alpha, cmap=plt.cm.Reds)
+        plt.title('Maximum speed in region')
+
     plt.xticks(np.linspace(0, dim, 5),
                [('%.2f' % lon)
                 for lon in np.linspace((-dim / 2) / lon_scaling + center_lon,
@@ -139,10 +169,16 @@ def do_plot(gridsize):
     return h
 
 plt.figure()
-do_plot(gridsize = args.grid)
+do_plot(gridsize = args.grid, disp = 'duration')
 cb = plt.colorbar()
 cb.set_label('seconds')
-plt.savefig(args.output + '.png')
+plt.savefig(args.output + '_duration.png')
+
+plt.figure()
+do_plot(gridsize = args.grid, disp = 'speed')
+cb = plt.colorbar()
+cb.set_label('mph')
+plt.savefig(args.output + '_speed.png')
 
 if args.movie:
     import matplotlib.animation as manimation
@@ -161,7 +197,7 @@ if args.movie:
     with writer.saving(fig, args.output + '.mp4', 100):
         for i in range(args.grid, 1, -1):
             fig.clf()
-            h = do_plot(gridsize = i + 1)
+            h = do_plot(gridsize = i + 1, disp = 'duration')
 
             cb = plt.colorbar(h)
             cb.set_label('seconds')
