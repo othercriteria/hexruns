@@ -147,21 +147,26 @@ def do_plot(gridsize, disp):
                        gridsize = gridsize,
                        alpha = args.alpha, cmap=plt.cm.Blues)
         plt.title('Total time in region')
-    elif disp == 'speed':
-        h = plt.hexbin(lon, lat, spd,
-                       reduce_C_function = np.max,
+    elif disp == 'pace':
+        h = plt.hexbin(lon, lat, 60 / spd,
+                       reduce_C_function = np.min,
                        extent = (0, dim, 0, dim),
                        gridsize = gridsize,
-                       alpha = args.alpha, cmap=plt.cm.Reds)
-        plt.title('Maximum speed in region')
+                       alpha = args.alpha, cmap=plt.cm.Reds_r)
+        plt.title('Fastest pace in region')
+
+    if (dim / lon_scaling) / 5 < 0.01:
+        tick_fmt = '%.3f'
+    else:
+        tick_fmt = '%.2f'
 
     plt.xticks(np.linspace(0, dim, 5),
-               [('%.2f' % lon)
+               [(tick_fmt % lon)
                 for lon in np.linspace((-dim / 2) / lon_scaling + center_lon,
                                        ( dim / 2) / lon_scaling + center_lon,
                                        5)])
     plt.yticks(np.linspace(0, dim, 5),
-               [('%.2f' % lat)
+               [(tick_fmt % lat)
                 for lat in np.linspace(( dim / 2) / lat_scaling + center_lat,
                                        (-dim / 2) / lat_scaling + center_lat,
                                        5)])
@@ -174,10 +179,10 @@ cb.set_label('seconds')
 plt.savefig(args.output + '_duration.png')
 
 plt.figure()
-do_plot(gridsize = args.grid, disp = 'speed')
+do_plot(gridsize = args.grid, disp = 'pace')
 cb = plt.colorbar()
-cb.set_label('mph')
-plt.savefig(args.output + '_speed.png')
+cb.set_label('min/mile')
+plt.savefig(args.output + '_pace.png')
 
 if args.movie:
     import matplotlib.animation as manimation
