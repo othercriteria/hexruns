@@ -21,7 +21,9 @@ parser.add_argument('-output', type = str, default = 'hexruns_out',
 parser.add_argument('-grid', metavar = 'g', type = int, default = 20,
                     help = 'Grid size, in number of hexagons')
 parser.add_argument('-alpha', metavar = 'a', type = float, default = 0.5,
-                    help = 'Opacity of historgram (default: 0.5)')
+                    help = 'Opacity of histogram (default: 0.5)')
+parser.add_argument('-maptype', metavar = 't', type = str, default = 'roadmap',
+                    help = 'Default (roadmap), satellite, hybrid, or terrain')
 parser.add_argument('-movie', action = 'store_true',
                     help = 'Generate a movie for the range of grid size')
 args = parser.parse_args()
@@ -115,11 +117,8 @@ url = 'http://maps.googleapis.com/maps/api/staticmap'
 dim = 512
 max_range = max(scale_factor * (lat.max() - lat.min()), lon.max() - lon.min())
 zoom = int(np.log(360 / max_range) / np.log(2) + 1)
-request = '{0}?center={1},{2}&size={3}x{3}&zoom={4}'.format(url,
-                                                            center_lat,
-                                                            center_lon,
-                                                            dim,
-                                                            zoom)
+request = '{0}?maptype={1}&center={2},{3}&size={4}x{4}&zoom={5}'.\
+    format(url, args.maptype, center_lat, center_lon, dim, zoom)
 
 # Make the request, grab the response, and prepare it for display
 opened_url = urllib.request.urlopen(request)
