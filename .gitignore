@@ -10,6 +10,9 @@ google_public_api_key
 # Emacs...
 *~
 
+# Ignore .env
+.env
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
