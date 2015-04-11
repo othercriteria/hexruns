@@ -1,15 +1,15 @@
 #!/usr/bin/env python
 
 import argparse
-import os
 import gpxpy
 import numpy as np
 import io
+from pathlib import Path
 from PIL import Image
 import urllib.request
 
 import matplotlib
-matplotlib.use("Agg")
+matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 
 # Command line option handling
@@ -53,12 +53,9 @@ if args.locality:
 # Accumulate lists of latitude, longitude, duration, and speed
 lat, lon, dur, spd = [], [], [], []
 
-all_files = os.listdir('.')
-for file in all_files:
-    if not file[-4:] == '.gpx':
-        continue
-
-    with open(file, 'r') as gpx_file:
+p = Path('.')
+for file in p.glob('*.gpx'):
+    with file.open() as gpx_file:
         gpx = gpxpy.parse(gpx_file)
 
         track = gpx.tracks[0]
