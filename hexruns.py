@@ -7,6 +7,7 @@ import io
 from pathlib import Path
 from PIL import Image
 import urllib.request
+import urllib.parse
 
 import matplotlib
 matplotlib.use('Agg')
@@ -117,9 +118,21 @@ zoom = int(np.log(360 / max_range) / np.log(2) + 1)
 request = '{0}?maptype={1}&center={2},{3}&size={4}x{4}&zoom={5}'.\
     format(url, args.maptype, center_lat, center_lon, dim, zoom)
 
-# Make the request, grab the response, and prepare it for display
-opened_url = urllib.request.urlopen(request)
-contents = opened_url.read()
+# Use cached image if the request has been made previously
+cache = p / 'cache'
+if not cache.exists():
+    cache.mkdir()
+maybe_image = cache / urllib.parse.quote(request, safe = '')
+if maybe_image.exists():
+    print('Using cached image: {0}'.format(maybe_image))
+    contents = maybe_image.open('rb').read()
+else:
+    # Make the request, grab the response, and cache it
+    opened_url = urllib.request.urlopen(request)
+    contents = opened_url.read()
+    maybe_image.open('wb').write(contents)
+
+# Turn raw data into image
 buffer = io.BytesIO(contents)
 image = Image.open(buffer)
 

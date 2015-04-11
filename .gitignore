@@ -13,6 +13,9 @@ google_public_api_key
 # Ignore .env
 .env
 
+# Ignore directory storing cached API requests
+cache/
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
