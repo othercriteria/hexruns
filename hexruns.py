@@ -21,6 +21,8 @@ parser.add_argument('-output', type = str, default = 'hexruns_out',
                     help = 'Output filename stem (default: hexruns_out)')
 parser.add_argument('-grid', metavar = 'g', type = int, default = 20,
                     help = 'Grid size, in number of hexagons')
+parser.add_argument('-entropy', action = 'store_true',
+                    help = 'Choose maximum entropy grid size, range 5 to g')
 parser.add_argument('-alpha', metavar = 'a', type = float, default = 0.5,
                     help = 'Opacity of histogram (default: 0.5)')
 parser.add_argument('-maptype', metavar = 't', type = str, default = 'roadmap',
@@ -166,6 +168,27 @@ lat *= -lat_scaling
 lon *= lon_scaling
 lat += (dim / 2)
 lon += (dim / 2)
+
+# Choose grid size as that which maximizes the entropy of the
+# (non-zero) region durations (with the durations coarsened to 6
+# possible levels), up to the desired grid size specified by the user
+if args.entropy:
+    possible_g = []
+    entropy = []
+    for g in range(5, args.grid + 1):
+        h = plt.hexbin(lon, lat, dur, reduce_C_function = np.sum,
+                       extent = (0, dim, 0, dim), gridsize = g)
+
+        counts = h.get_array()
+        p = np.histogram(counts, bins = 6)[0] / len(counts)
+        p_nonzero = p[np.nonzero(p)]
+
+        possible_g.append(g)
+        entropy.append(-np.sum(p_nonzero * np.log2(p_nonzero)))
+    chosen_i = np.argmax(entropy)
+    print('Picked g = {0} with entropy {1}'.format(possible_g[chosen_i],
+                                                   entropy[chosen_i]))
+    args.grid = possible_g[chosen_i]
 
 # Return the hexbin object for later use
 def do_plot(gridsize, disp):
