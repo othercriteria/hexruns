@@ -29,21 +29,46 @@ parser.add_argument('-movie', action = 'store_true',
                     help = 'Generate a movie for the range of grid size')
 args = parser.parse_args()
 
+# Base path to be used in various filesystem operations
+p = Path('.')
+
+cache = p / 'cache'
+if not cache.exists():
+    cache.mkdir()
+
 if args.locality:
     locality = args.locality
-    
+
     print('Limiting to "{0}"'.format(locality))
 
-    api_key = open('google_public_api_key', 'r').read()
-    print('Google public API key:', api_key)
+    # Do lookup in geocode cache; create empty one if it doesn't exist
+    import json
+    maybe_geocode_cache_json = cache / 'geocode_cache.json'
+    if maybe_geocode_cache_json.exists():
+        with maybe_geocode_cache_json.open() as geocode_cache_json:
+            geocode_cache = json.load(geocode_cache_json)
+    else:
+        geocode_cache = {}
+
+    if locality in geocode_cache:
+        print('Using cached geocode')
+        geocode_response = geocode_cache[locality]
+    else:
+        api_key_file = p / 'google_public_api_key'
+        api_key = api_key_file.open().read()
+        print('Google public API key:', api_key)
     
-    import googlemaps
-    gmaps = googlemaps.Client(key = api_key)
+        import googlemaps
+        gmaps = googlemaps.Client(key = api_key)
 
-    geocode_result = gmaps.geocode(locality)[0]['geometry']
+        geocode_response = gmaps.geocode(locality)[0]['geometry']
 
-    bounds_l = geocode_result['bounds']['southwest']
-    bounds_u = geocode_result['bounds']['northeast']
+        geocode_cache[locality] = geocode_response
+        with maybe_geocode_cache_json.open('w') as outfile:
+            json.dump(geocode_cache, outfile)
+
+    bounds_l = geocode_response['bounds']['southwest']
+    bounds_u = geocode_response['bounds']['northeast']
 
     lat_l, lat_u = bounds_l['lat'], bounds_u['lat']
     lon_l, lon_u = bounds_l['lng'], bounds_u['lng']
@@ -54,7 +79,6 @@ if args.locality:
 # Accumulate lists of latitude, longitude, duration, and speed
 lat, lon, dur, spd = [], [], [], []
 
-p = Path('.')
 for file in p.glob('*.gpx'):
     with file.open() as gpx_file:
         gpx = gpxpy.parse(gpx_file)
@@ -119,9 +143,6 @@ request = '{0}?maptype={1}&center={2},{3}&size={4}x{4}&zoom={5}'.\
     format(url, args.maptype, center_lat, center_lon, dim, zoom)
 
 # Use cached image if the request has been made previously
-cache = p / 'cache'
-if not cache.exists():
-    cache.mkdir()
 maybe_image = cache / urllib.parse.quote(request, safe = '')
 if maybe_image.exists():
     print('Using cached image: {0}'.format(maybe_image))
