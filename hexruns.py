@@ -180,7 +180,7 @@ if args.entropy:
                        extent = (0, dim, 0, dim), gridsize = g)
 
         counts = h.get_array()
-        p = np.histogram(counts, bins = 6)[0] / len(counts)
+        p = np.histogram(counts, bins = 5)[0] / len(counts)
         p_nonzero = p[np.nonzero(p)]
 
         possible_g.append(g)
@@ -199,6 +199,7 @@ def do_plot(gridsize, disp):
                        reduce_C_function = np.sum,
                        extent = (0, dim, 0, dim),
                        gridsize = gridsize,
+                       linewidths = (0,),
                        alpha = args.alpha, cmap=plt.cm.Blues)
         plt.title('Total time in region')
     elif disp == 'pace':
@@ -206,6 +207,7 @@ def do_plot(gridsize, disp):
                        reduce_C_function = np.min,
                        extent = (0, dim, 0, dim),
                        gridsize = gridsize,
+                       linewidths = (0,),
                        alpha = args.alpha, cmap=plt.cm.Reds_r)
         plt.title('Fastest pace in region')
 
