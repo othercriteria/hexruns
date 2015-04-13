@@ -23,6 +23,8 @@ parser.add_argument('-grid', metavar = 'g', type = int, default = 20,
                     help = 'Grid size, in number of hexagons')
 parser.add_argument('-entropy', action = 'store_true',
                     help = 'Choose maximum entropy grid size, range 5 to g')
+parser.add_argument('-bins', metavar = 'b', type = int, default = 5,
+                    help = 'Duration bins to use for entropy (default: 5)')
 parser.add_argument('-alpha', metavar = 'a', type = float, default = 0.5,
                     help = 'Opacity of histogram (default: 0.5)')
 parser.add_argument('-maptype', metavar = 't', type = str, default = 'roadmap',
@@ -180,7 +182,7 @@ if args.entropy:
                        extent = (0, dim, 0, dim), gridsize = g)
 
         counts = h.get_array()
-        p = np.histogram(counts, bins = 5)[0] / len(counts)
+        p = np.histogram(counts, bins = args.bins)[0] / len(counts)
         p_nonzero = p[np.nonzero(p)]
 
         possible_g.append(g)
