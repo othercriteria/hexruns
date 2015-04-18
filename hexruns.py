@@ -17,6 +17,8 @@ import matplotlib.pyplot as plt
 parser = argparse.ArgumentParser(description = 'Visualize GPX running data.')
 parser.add_argument('locality', type = str, nargs = '?',
                     help = 'Limit visualization to selected locality')
+parser.add_argument('-delta', metavar = 'd', type = float, default = 12,
+                    help = 'Minimum time-delta for durations')
 parser.add_argument('-output', type = str, default = 'hexruns_out',
                     help = 'Output filename stem (default: hexruns_out)')
 parser.add_argument('-grid', metavar = 'g', type = int, default = 20,
@@ -107,9 +109,11 @@ for file in p.glob('*.gpx'):
                 new_lat_path.append(new.latitude)
                 new_lon_path.append(new.longitude)
 
-                # TODO: minimum time-delta should be user-specified
+                # Only accumlate points for duration and speed when
+                # the minimum time-delta has elapsed, to make these
+                # more robust to sensor error and strange movements
                 t = (new.time - last.time).total_seconds()
-                if t < 12:
+                if t < args.delta:
                     continue
 
                 # TODO: use standard cartographical terminology
