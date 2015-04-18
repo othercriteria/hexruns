@@ -19,6 +19,8 @@ parser.add_argument('locality', type = str, nargs = '?',
                     help = 'Limit visualization to selected locality')
 parser.add_argument('-delta', metavar = 'd', type = float, default = 12,
                     help = 'Minimum time-delta for durations')
+parser.add_argument('-suspicious', metavar = 's', type = float, default = 15,
+                    help = 'Suspicious speed (default: 15.0 miles per hour)')
 parser.add_argument('-output', type = str, default = 'hexruns_out',
                     help = 'Output filename stem (default: hexruns_out)')
 parser.add_argument('-grid', metavar = 'g', type = int, default = 20,
@@ -123,8 +125,7 @@ for file in p.glob('*.gpx'):
                             (  c*(new.longitude - last.longitude)) ** 2)
                 s = 3600 * d / t
 
-                # TODO: unrealistic speed should be user-specified
-                if s > 15:
+                if s > args.suspicious:
                     print('Suspicious speed:', s, last, new)
                     continue
 
