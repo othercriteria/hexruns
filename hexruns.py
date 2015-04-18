@@ -83,6 +83,10 @@ if args.locality:
 # Accumulate lists of latitude, longitude, duration, and speed
 lat, lon, dur, spd = [], [], [], []
 
+# Accumulate paths
+lat_paths = []
+lon_paths = []
+
 for file in p.glob('*.gpx'):
     with file.open() as gpx_file:
         gpx = gpxpy.parse(gpx_file)
@@ -93,9 +97,15 @@ for file in p.glob('*.gpx'):
             first = segment.points[0]
             rest = segment.points[1:]
             
+            new_lat_path = [first.latitude]
+            new_lon_path = [first.longitude]
+
             last = first
             for point in rest:
                 new = point
+
+                new_lat_path.append(new.latitude)
+                new_lon_path.append(new.longitude)
 
                 # TODO: minimum time-delta should be user-specified
                 t = (new.time - last.time).total_seconds()
@@ -120,6 +130,9 @@ for file in p.glob('*.gpx'):
                 spd.append(s)
 
                 last = new
+
+        lat_paths.append(np.array(new_lat_path))
+        lon_paths.append(np.array(new_lon_path))
 
 lat = np.array(lat)
 lon = np.array(lon)
@@ -161,15 +174,19 @@ else:
 buffer = io.BytesIO(contents)
 image = Image.open(buffer)
 
-# Transform the tracks onto the same coordinates as the map
-lat -= center_lat
-lon -= center_lon
+# Transformation to put lat-lon points onto the same coordinates as the map
 lon_scaling = (dim / 360) * (2 ** (zoom - 1))
 lat_scaling = lon_scaling * scale_factor
-lat *= -lat_scaling
-lon *= lon_scaling
-lat += (dim / 2)
-lon += (dim / 2)
+def lat_to_map(lats):
+    return -lat_scaling * (lats - center_lat) + (dim / 2)
+def lon_to_map(lons):
+    return lon_scaling * (lons - center_lon) + (dim / 2)
+
+# Apply transformation
+lat = lat_to_map(lat)
+lon = lon_to_map(lon)
+lat_paths = [lat_to_map(lat_path) for lat_path in lat_paths]
+lon_paths = [lon_to_map(lon_path) for lon_path in lon_paths]
 
 # Choose grid size as that which maximizes the entropy of the
 # (non-zero) region durations (with the durations coarsened to 6
@@ -192,11 +209,12 @@ if args.entropy:
                                                    entropy[chosen_i]))
     args.grid = possible_g[chosen_i]
 
-# Return the hexbin object for later use
-def do_plot(gridsize, disp):
+# Return the hexbin object for later use, when generated
+def do_plot(disp, **kwargs):
     plt.imshow(image)
 
     if disp == 'duration':
+        gridsize = kwargs['gridsize']
         h = plt.hexbin(lon, lat, dur,
                        reduce_C_function = np.sum,
                        extent = (0, dim, 0, dim),
@@ -205,6 +223,7 @@ def do_plot(gridsize, disp):
                        alpha = args.alpha, cmap=plt.cm.Blues)
         plt.title('Total time in region')
     elif disp == 'pace':
+        gridsize = kwargs['gridsize']
         h = plt.hexbin(lon, lat, 60 / spd,
                        reduce_C_function = np.min,
                        extent = (0, dim, 0, dim),
@@ -212,6 +231,12 @@ def do_plot(gridsize, disp):
                        linewidths = (0,),
                        alpha = args.alpha, cmap=plt.cm.Reds_r)
         plt.title('Fastest pace in region')
+    elif disp == 'paths':
+        for lat_path, lon_path in zip(lat_paths, lon_paths):
+            plt.plot(lon_path, lat_path)
+        plt.xlim([0, dim])
+        plt.ylim([dim, 0])
+        plt.title('Paths')
 
     if (dim / lon_scaling) / 5 < 0.01:
         tick_fmt = '%.3f'
@@ -228,16 +253,24 @@ def do_plot(gridsize, disp):
                 for lat in np.linspace(( dim / 2) / lat_scaling + center_lat,
                                        (-dim / 2) / lat_scaling + center_lat,
                                        5)])
-    return h
+
+    if disp == 'paths':
+        return None
+    else:
+        return h
 
 plt.figure()
-do_plot(gridsize = args.grid, disp = 'duration')
+do_plot('paths')
+plt.savefig(args.output + '_paths.png')
+
+plt.figure()
+do_plot('duration', gridsize = args.grid)
 cb = plt.colorbar()
 cb.set_label('seconds')
 plt.savefig(args.output + '_duration.png')
 
 plt.figure()
-do_plot(gridsize = args.grid, disp = 'pace')
+do_plot('pace', gridsize = args.grid)
 cb = plt.colorbar()
 cb.set_label('min/mile')
 plt.savefig(args.output + '_pace.png')
@@ -259,7 +292,7 @@ if args.movie:
     with writer.saving(fig, args.output + '.mp4', 100):
         for i in range(args.grid, 1, -1):
             fig.clf()
-            h = do_plot(gridsize = i + 1, disp = 'duration')
+            h = do_plot('duration', gridsize = i + 1)
 
             cb = plt.colorbar(h)
             cb.set_label('seconds')
