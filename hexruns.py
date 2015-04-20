@@ -217,7 +217,7 @@ if args.entropy:
     plt.figure()
     plt.plot(possible_g, entropy)
     plt.scatter(possible_g[chosen_i], entropy[chosen_i], c = 'red')
-    plt.title('Entropy maximization')
+    plt.title('Entropy maximization ({0} duration bins)'.format(args.bins))
     plt.xlabel('grid size')
     plt.ylabel('entropy (bits)')
     plt.xlim([0, possible_g[-1]])
