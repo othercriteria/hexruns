@@ -1,10 +1,12 @@
 # hexruns
 
-*Quick and dirty visualization of aggregated runs*
+*Visualizing running data through aggregation with hexagonal binning*
 
-Rough concept is to extract locations from GPS (or whatever it actually is that [RunKeeper](http://runkeeper.com) uses to track your location) tracks, filter to those in a compact area (e.g., Providence, RI), display them in a [2-d histogram with hexagonal binning](http://matplotlib.org/examples/pylab_examples/hexbin_demo.html), and superimpose over a map for context.
+To see hexruns in action, check out [this blog post](http://mesokurtosis.com/posts/2015-03-29-running-viz-fixed.html) and the other posts in the ["running"](http://mesokurtosis.com/tags/running.html) tag.
 
-I found this [guide](http://matplotlib.org/users/colormaps.html) useful in choosing a colormap that is informative rather than aggravating.
+Its rough purpose is to extract locations from GPS (or whatever it actually is that [RunKeeper](http://runkeeper.com) uses to track your location) tracks, filter to those in a compact area (e.g., Providence, RI), display them in a [2-d histogram with hexagonal binning](http://matplotlib.org/examples/pylab_examples/hexbin_demo.html), and superimpose over a map for context.
+
+A current area of active work is finding colormaps that convey useful information about duration and pace when overlaid on the various [map types](https://developers.google.com/maps/documentation/staticmaps/index#MapTypes) that the Google Static Maps API makes available. I've found this [guide](http://matplotlib.org/users/colormaps.html) useful but I'm still a long way from a really satisfying solution.
 
 ## Usage
 
