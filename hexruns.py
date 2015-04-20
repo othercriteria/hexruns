@@ -214,6 +214,15 @@ if args.entropy:
                                                    entropy[chosen_i]))
     args.grid = possible_g[chosen_i]
 
+    plt.figure()
+    plt.plot(possible_g, entropy)
+    plt.scatter(possible_g[chosen_i], entropy[chosen_i], c = 'red')
+    plt.title('Entropy maximization')
+    plt.xlabel('grid size')
+    plt.ylabel('entropy (bits)')
+    plt.xlim([0, possible_g[-1]])
+    plt.savefig(args.output + '_entropy.png')
+
 # Return the hexbin object for later use, when generated
 def do_plot(disp, **kwargs):
     plt.imshow(image)
