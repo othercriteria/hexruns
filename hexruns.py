@@ -136,8 +136,8 @@ for file in p.glob('*.gpx'):
 
                 last = new
 
-        lat_paths.append(np.array(new_lat_path))
-        lon_paths.append(np.array(new_lon_path))
+            lat_paths.append(np.array(new_lat_path))
+            lon_paths.append(np.array(new_lon_path))
 
 lat = np.array(lat)
 lon = np.array(lon)
