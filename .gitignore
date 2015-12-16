@@ -1,3 +1,6 @@
+# Ignore CSV files from Runkeeper export dump
+*.csv
+
 # Ignore run traces
 *.gpx
 
