@@ -2,6 +2,8 @@
 
 *Visualizing running data through aggregation with hexagonal binning*
 
+![Output of hexruns for the author's runs in Worcester, MA. Binning to a grid size of 28 × 28 hexes.](https://github.com/othercriteria/hexruns/blob/master/doc/2015-03-27-worcester-hexmap.png)
+
 To see hexruns in action, check out [this blog post](http://mesokurtosis.com/posts/2015-03-29-running-viz-fixed.html) and the other posts in the ["running"](http://mesokurtosis.com/tags/running.html) tag.
 
 Its rough purpose is to extract locations from GPS (or whatever it actually is that [RunKeeper](http://runkeeper.com) uses to track your location) tracks, filter to those in a compact area (e.g., Providence, RI), display them in a [2-d histogram with hexagonal binning](http://matplotlib.org/examples/pylab_examples/hexbin_demo.html), and superimpose over a map for context.
