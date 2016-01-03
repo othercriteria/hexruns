@@ -21,6 +21,14 @@ A current area of active work is finding colormaps that convey useful informatio
 
 For more control over the output, take a look at `./hexruns.py --help`.
 
+TODO: Switch to a smoother install by running the following commands in a destination directory:
+
+```
+git clone https://github.com/othercriteria/hexruns.git
+cd hexruns/
+./setup.py install
+```
+
 ## Requirements
 
 * Python 3.x
