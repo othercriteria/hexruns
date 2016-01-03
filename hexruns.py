@@ -31,6 +31,8 @@ parser.add_argument('-bins', metavar = 'b', type = int, default = 5,
                     help = 'Duration bins to use for entropy (default: 5)')
 parser.add_argument('-alpha', metavar = 'a', type = float, default = 0.5,
                     help = 'Opacity of histogram (default: 0.5)')
+parser.add_argument('-reveal', action = 'store_true',
+                    help = 'Reveal only visited areas')
 parser.add_argument('-maptype', metavar = 't', type = str, default = 'roadmap',
                     help = 'Default (roadmap), satellite, hybrid, or terrain')
 parser.add_argument('-movie', action = 'store_true',
@@ -65,7 +67,7 @@ if args.locality:
         api_key_file = p / 'google_public_api_key'
         api_key = api_key_file.open().read()
         print('Google public API key:', api_key)
-    
+
         import googlemaps
         gmaps = googlemaps.Client(key = api_key)
 
