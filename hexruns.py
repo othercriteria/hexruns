@@ -34,10 +34,19 @@ parser.add_argument('-alpha', metavar = 'a', type = float, default = 0.5,
 parser.add_argument('-reveal', action = 'store_true',
                     help = 'Reveal only visited areas')
 parser.add_argument('-maptype', metavar = 't', type = str, default = 'roadmap',
+                    choices = ['roadmap', 'satellite', 'hybrid', 'terrain'],
                     help = 'Default (roadmap), satellite, hybrid, or terrain')
 parser.add_argument('-movie', action = 'store_true',
                     help = 'Generate a movie for the range of grid size')
 args = parser.parse_args()
+
+# Pick colormaps based on maptype
+if args.maptype == 'roadmap':
+    cmap_duration = plt.cm.Blues
+else:
+    cmap_duration = plt.cm.viridis
+
+cmap_pace = plt.cm.Reds
 
 # Base path to be used in various filesystem operations
 p = Path('.')
@@ -236,7 +245,7 @@ def do_plot(disp, **kwargs):
                        extent = (0, dim, 0, dim),
                        gridsize = gridsize,
                        linewidths = (0,),
-                       alpha = args.alpha, cmap=plt.cm.Blues)
+                       alpha = args.alpha, cmap = cmap_duration)
         plt.title('Total time in region')
     elif disp == 'pace':
         gridsize = kwargs['gridsize']
@@ -245,7 +254,7 @@ def do_plot(disp, **kwargs):
                        extent = (0, dim, 0, dim),
                        gridsize = gridsize,
                        linewidths = (0,),
-                       alpha = args.alpha, cmap=plt.cm.Reds_r)
+                       alpha = args.alpha, cmap = cmap_pace)
         plt.title('Fastest pace in region')
     elif disp == 'paths':
         for lat_path, lon_path in zip(lat_paths, lon_paths):
